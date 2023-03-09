@@ -36,7 +36,7 @@ So for config in form
 
     }
 
-the path is "\<base mqtt path\>/do/ch1/set_state" or  "\<base mqtt path\>/do/ch1/set_state", "set_state" or "get_state" are described directly in driver and are driver dependant. Also format of mqtt messages are drived dependant. Format of shis messages are described directly in source foles of drivers in /driver/ folder.
+the path is "\<base mqtt path\>/do/ch1/set_state" or  "\<base mqtt path\>/do/ch1/set_state", "set_state" or "get_state" are described directly in driver and are driver dependant. Also format of mqtt messages are driver dependant. Format of shis messages are described directly in source foles of drivers in /driver/ folder.
 
 # How to write driver
 
