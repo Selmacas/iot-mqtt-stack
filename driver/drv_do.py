@@ -2,6 +2,28 @@ from machine import Pin
 import machine
 import time, json
 
+"""
+    Driver for discrete outputs (DO)
+    Config parameters are:
+    "do":
+        {
+            "<channel name>":
+            {
+                "pin_num": <gpio number>,
+                "state": <state>
+            }
+        }
+
+   <channel name>{string} - is name which wil be shown in mqtt topic path [mandatory]
+   <gpio num>{int}}  - is number of input pin [mandatory]
+   <state>{int/bool}  - Init state of output pin [optional - default = false]
+
+   Mqtt messages:
+   Messages ale in form of json. Value of pin could be changed in topic "<base_topic>/do/<channel name>/set_state".
+   Format of this message have to be in form "{ "state": <state>{int/bool}}".
+   When value is changed, driver publish in "<base_topic>/do/<channel name>/get_state" message in form "{ "state": <state>{int/bool}}".
+"""
+
 def build(mqtt_manager, base_path, dict_in):
         dos = []
         for name, params in dict_in.items():

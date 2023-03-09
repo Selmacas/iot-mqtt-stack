@@ -1,6 +1,30 @@
 from machine import Pin, PWM
 import time, json
 
+"""
+    Driver for PWM outputs (PWM)
+    Config parameters are:
+    "pwm":
+        {
+            "<channel name>":
+            {
+                "pin_num": <gpio number>,
+                "freq": <frequency>,
+                "duty": <duty>
+            }
+        }
+
+   <channel name>{string} - is name which wil be shown in mqtt topic path [mandatory]
+   <gpio num>{int}}  - is number of input pin [mandatory]
+   <frequency>{int}  - Frequency od pwm in Hz [optional - default = 1000]
+   <duty>{int 0-100} - Initial duty of this channel in % [optional - default = 0]
+
+   Mqtt messages:
+   Messages ale in form of json. Value of pin could be changed in topic "<base_topic>/pwm/<channel name>/set_duty".
+   Format of this message have to be in form "{ "duty": <duty>{int}}", duty is int in range 0 - 100.
+   When value is changed, driver publish in "<base_topic>/pwm/<channel name>/get_state" message in form "{ "duty": <duty>{int}}".
+"""
+
 def build(mqtt_manager, base_path, dict_in):
         pwms = []
         for name, params in dict_in.items():

@@ -2,6 +2,29 @@ from machine import Pin
 import machine
 import time, json
 
+"""
+    Driver for discrete inputs (DI)
+    Config parameters are:
+    "di":
+        {
+            "<channel name>":
+            {
+                "pin_num": <gpio number>,
+                "settle_ms": <debounce time>
+            }
+        }
+
+   <channel name>{string} - is name which wil be shown in mqtt topic path [mandatory]
+   <gpio num>{int}}  - is number of input pin [mandatory]
+   <debounce time>{int}  - Real debounce time is 2x <debounce time> [optional - default = 150]
+
+   Mqtt messages:
+   Messages ale in form of json. When publish something in topic "<base_topic>/di/<channel name>/que_state" (doesn't matter what)
+   or pin <gpio number> changes,
+   this driver rpublish in "<base_topic>/di/<channel name>/get_state" message in format "{"state": <state>{bool} }"
+
+"""
+
 def build(mqtt_manager, base_path, dict_in):
         dis = []
         for name, params in dict_in.items():
