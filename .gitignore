@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#config file
+unitconf.json
+
+#backup files
+*~
+
+
 # C extensions
 *.so
 
