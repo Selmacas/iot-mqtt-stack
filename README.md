@@ -38,5 +38,11 @@ So for config in form
 
 the path is __"\<base mqtt path\>/do/ch1/set\_state"__ or  __"\<base mqtt path\>/do/ch1/set\_state"__, _"set_state"_ or _"get_state"_ are described directly in driver and are driver dependant. Also format of mqtt messages are driver dependant. Format of shis messages are described directly in source foles of drivers in /driver/ folder.
 
+The config have trhee main parts. Frist part is node __"unit\_id"__. This node is used as client id for mqtt broker. This means value of this node __MUST__ be unique for each unit!.
+Second part is node __"mqtt"__. In this node you configure parameters for mqtt. Third part si the core of this framework. In this node "peripherals" you confirgure used peripherals. Each direct subnode of node "peripherals" calls driver from directory "driver". The name of driver i name of subnode preceded with "drv\_" (so for early mentioned config the driver is drv_do.py).
+Subnode of driver name subnode defines channels (creates instances of driver). Parameters of channel are given to driver when instance of driver is created.
+
+So the early mentioned config file defines one digital outpud ("do") channel named "ch1" on gpio pin 14.
+
 # How to write driver
 
