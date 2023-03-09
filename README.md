@@ -9,7 +9,7 @@ You can install this lib directly in ESP32 in micropython:
     upip.install("micropython-umqtt.robust2")
 
 ## How to use
-When you want to use this framework, just install umqtt.robust2 lib to your board, copy files in this repo and write config file "unitconf.json". This config is plain json file. Example with comments - this config does not work, you need to remove coments - is [here](https://github.com/Selmacas/iot-mqtt-stack/blob/master/unitconf_comented_example.json). Mqtt path is build as \<base mqtt path\>/\<driver\>/\<name of channel\>\< driver dependant \>
+When you want to use this framework, just install umqtt.robust2 lib to your board, copy files in this repo and write config file "unitconf.json". This config is plain json file. Example with comments - this config does not work, you need to remove coments - is [here](https://github.com/Selmacas/iot-mqtt-stack/blob/master/unitconf_comented_example.json). Mqtt path is build as __\<base mqtt path\>/\<driver\>/\<name of channel\>\< driver dependant \>__
 So for config in form
 
 
@@ -36,7 +36,7 @@ So for config in form
 
     }
 
-the path is "\<base mqtt path\>/do/ch1/set_state" or  "\<base mqtt path\>/do/ch1/set_state", "set_state" or "get_state" are described directly in driver and are driver dependant. Also format of mqtt messages are driver dependant. Format of shis messages are described directly in source foles of drivers in /driver/ folder.
+the path is __"\<base mqtt path\>/do/ch1/set\_state"__ or  __"\<base mqtt path\>/do/ch1/set\_state"__, _"set_state"_ or _"get_state"_ are described directly in driver and are driver dependant. Also format of mqtt messages are driver dependant. Format of shis messages are described directly in source foles of drivers in /driver/ folder.
 
 # How to write driver
 
