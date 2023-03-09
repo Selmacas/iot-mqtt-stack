@@ -1,0 +1,46 @@
+{
+    "unit_id": "<unique unit id>", #It is mandatory that this id is unique!!!
+    "mqtt":
+    {
+        "broker_ip": "<broker_address>",
+        "base_topic": "<base mqtt path>",
+        "wifi_ssid": "<SSID>",
+        "wifi_pass": "<PASSWD>"
+    },
+    "peripherals":
+    {
+        "do": #This call driver driver/drv_do.py
+        {
+            "ch1": #Name of channel, this could be anything, it will be part of mqtt topic path
+            {
+                "pin_num": 14,  #these parameters are according to driver diver/drv_do.py
+                "state": false
+            }
+        },
+        "di":  #This call driver driver/drv_di.py
+        {
+            "ch1": #Name of channel, this could be anything, it will be part of mqtt topic path
+            {
+                "pin_num": 12,  #these parameters are according to driver diver/drv_di.py
+                "settle_ms": 60
+            }
+        },
+        "pwm": #This call driver driver/drv_pwm.py
+        {
+            "ch1": #Name of channel, this could be anything, it will be part of mqtt topic path
+            {
+                "freq": 1000, #these parameters are according to driver diver/drv_pwm.py
+                "duty": 0,
+                "pin_num": 0
+            },
+            "ch2": #Name of channel, this could be anything, it will be part of mqtt topic path
+            {
+                "freq": 1000,   #these parameters are according to driver diver/drv_pwm.py
+                "duty": 0,
+                "pin_num": 2
+            }
+        }
+    }
+
+}
+
