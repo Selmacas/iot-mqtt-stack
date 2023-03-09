@@ -66,8 +66,8 @@ class drvDI:
         self.pub_cb()
 
     def pub_cb(self):
-        msg = json.dumps({"state": bool(self.pin.value())})
         try:
+            msg = json.dumps({"state": bool(self.pin.value())})
             self.mqtt.publish(self.pub_topic, msg)
         except Exception as e:
             print("drvDI Pub error: " + str(e))

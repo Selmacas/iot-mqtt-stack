@@ -21,7 +21,7 @@ import time, json
    Mqtt messages:
    Messages ale in form of json. Value of pin could be changed in topic "<base_topic>/do/<channel name>/set_state".
    Format of this message have to be in form "{ "state": <state>{int/bool}}".
-   When value is changed, driver publish in "<base_topic>/do/<channel name>/get_state" message in form "{ "state": <state>{int/bool}}".
+   When value is changed or recieved message is not correct, driver publish in "<base_topic>/do/<channel name>/get_state" message in form "{ "state": <state>{int/bool}}".
 """
 
 def build(mqtt_manager, base_path, dict_in):
@@ -62,13 +62,13 @@ class drvDO:
                 self.pin.on()
             else:
                 self.pin.off()
-            self.pub_cb()
-        except Exception as f:
-            print("drvDO Sub error: " + str(f))
+        except Exception as e:
+            print("drvDO Sub message error: " + str(e))
+        self.pub_cb()
 
     def pub_cb(self):
-        msg = json.dumps({"state": bool(self.pin.value())})
         try:
+            msg = json.dumps({"state": bool(self.pin.value())})
             self.mqtt.publish(self.pub_topic, msg)
         except Exception as e:
             print("drvDO Pub error: " + str(e))

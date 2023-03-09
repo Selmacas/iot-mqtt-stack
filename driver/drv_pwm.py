@@ -22,7 +22,7 @@ import time, json
    Mqtt messages:
    Messages ale in form of json. Value of pin could be changed in topic "<base_topic>/pwm/<channel name>/set_duty".
    Format of this message have to be in form "{ "duty": <duty>{int}}", duty is int in range 0 - 100.
-   When value is changed, driver publish in "<base_topic>/pwm/<channel name>/get_state" message in form "{ "duty": <duty>{int}}".
+   When value is changed or recieved message is not correct, driver publish in "<base_topic>/pwm/<channel name>/get_state" message in form "{ "duty": <duty>{int}}".
 """
 
 def build(mqtt_manager, base_path, dict_in):
@@ -65,14 +65,14 @@ class dPWM:
             if duty <= 100:
                 self.pwm.duty_u16(int(duty*65535/100))
                 time.sleep_ms(1)
-            print(self.pwm)
-            self.pub_cb()
+            #print(self.pwm)
         except Exception as e:
             print("drvPWM Sub error: " + str(e))
+        self.pub_cb()
 
     def pub_cb(self):
-        msg = json.dumps({"duty": int(round(self.pwm.duty_u16()*100/65535))})
         try:
+            msg = json.dumps({"duty": int(round(self.pwm.duty_u16()*100/65535))})
             self.mqtt.publish(self.pub_topic, msg)
         except Exception as e:
             print("drvPWM Pub error: " + str(e))
