@@ -46,10 +46,8 @@ class drvDO:
         self.pub_topic = pub_topic
 
         self.pin = Pin(pin_num, Pin.OUT)
-        if state == True:
-            self.pin.on()
-        else:
-            self.pin.off()
+        self.pin_state = bool(state)
+        self.pin.value(self.pin_state)
         self.pub_cb()
 
         self.mqtt.register_sub_cb(self.sub_topic, self.sub_cb)
@@ -58,17 +56,15 @@ class drvDO:
     def sub_cb(self, topic, mess):
         try:
             messj = json.loads(mess)
-            if bool(messj["state"]) == True:
-                self.pin.on()
-            else:
-                self.pin.off()
+            self.pin_state = bool(messj["state"])
+            self.pin.value(self.pin_state)
         except Exception as e:
             print("drvDO Sub message error: " + str(e))
         self.pub_cb()
 
     def pub_cb(self):
         try:
-            msg = json.dumps({"state": bool(self.pin.value())})
+            msg = json.dumps({"state": bool(self.pin_state)})
             self.mqtt.publish(self.pub_topic, msg)
         except Exception as e:
             print("drvDO Pub error: " + str(e))
