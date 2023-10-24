@@ -110,7 +110,7 @@ class mqttUnit:
                 elif p.lower().startswith("spi"):
                     if periph["num"] in range(2):
                         self.i_peripherals["spi"][periph["num"]]["spi"] = SPI(periph["num"], baudrate=periph["freq"], sck=Pin(periph["sck"]), mosi=Pin(periph["mosi"]), miso=Pin(periph["mosi"]))
-                	self.i_peripherals["spi"][periph["num"]]["lock"] = False
+                        self.i_peripherals["spi"][periph["num"]]["lock"] = False
                 elif p.lower().startswith("uart"):
                     if periph["num"] in range(1,3):
                         self.i_peripherals["uart"][periph["num"]]["uart"] = UART(periph["num"], baudrate=periph["baudrate"], tx=Pin(periph["tx"]), rx=Pin(periph["rx"]))

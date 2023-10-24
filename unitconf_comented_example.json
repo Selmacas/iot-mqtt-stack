@@ -7,6 +7,31 @@
         "wifi_ssid": "<SSID>",
         "wifi_pass": "<PASSWD>"
     },
+    "internal_peripherals":
+    {
+        "i2c_0": #There should be periph_<name> periph can be i2c_, spi_, uart_
+        {
+            "num": 0,	# 0 or 1
+            "sda": 39,	# pin num
+            "scl": 38,	# pin num
+            "freq": 100000 #i2c frequency
+        }
+        "spi_0": #There should be periph_<name> periph can be i2c_, spi_, uart_
+        {
+            "num": 0,	# 0 or 1
+            "mosi": 35,	# pin num
+            "miso": 36,	# pin num
+            "sck": 37, #pin num 
+			"freq": 100000 #spi frequency
+        }
+        "uart_0": #There should be periph_<name> periph can be i2c_, spi_, uart_
+        {
+            "num": 0,	# 1 or 2 (0 is used by uPython)
+            "tx": 34,	# pin num
+            "rx": 33,	# pin num
+            "baudrate": 19200  #uart baudrate
+        }
+    },
     "peripherals":
     {
         "do": #This call driver driver/drv_do.py
