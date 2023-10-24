@@ -1,5 +1,7 @@
 
 import network, gc, json
+import webrepl
+from machine import I2C, SPI, UART, Pin
 from mqttmanager import mqttmanager
 from builtins import Exception
 
@@ -14,13 +16,14 @@ class mqttUnit:
         self.wifi = None
         self.mqtt_manager = None
         self.peripherals = {}
+        self.i_peripherals = {"i2c": [{"i2c": None, "lock": False},{"i2c": None, "lock": False}], "spi": [{"spi": None, "lock": False},{"spi": None, "lock": False}], "uart": [{"uart": None, "lock": False},{"uart": None, "lock": False}, {"uart": None, "lock": False}]}
 
         self.unit_id = None
         self.base_topic = None
 
         self.is_running = False
 
-    def run(self):
+    def start(self):
         if self.is_running == True:
             print("MqttUnit \"" + self.unit_id + "\" is running!\n\n")
             return
@@ -31,9 +34,11 @@ class mqttUnit:
             self.__build_config_tree()
             self.__connect_wifi()
             self.__create_mqtt_manager()
+            self.__build_internl_peripherals()
             self.__build_peripherals()
+            self.mqtt_manager.register_sub_cb(self.base_topic + "system", self.__system_cb)
         except Exception as e:
-            print("Somethig went wrong: " + str(e))
+            print("Somethig went wrong in start: " + str(e))
             return
         self.is_running = True
         print("MqttUnit \"" + self.unit_id + "\" is now running!\n\n")
@@ -91,6 +96,29 @@ class mqttUnit:
         print("MQTT ip: " + broker_ip)
         print("MQTT base topic: " + self.base_topic)
         print("MQTT is running")
+        
+    def __build_internl_peripherals(self):
+        print("Buiding internal (shared) peripherals tree ...")
+        peripherals_c = self.config_tree["internal_peripherals"]
+        for p in peripherals_c:
+            periph = peripherals_c[p]
+            try:
+                if p.lower().startswith("i2c"):
+                    if periph["num"] in range(2):
+                        self.i_peripherals["i2c"][periph["num"]]["i2c"] = I2C(periph["num"], sda=Pin(periph["sda"]), scl=Pin(periph["scl"]), freq=periph["freq"])
+                        self.i_peripherals["i2c"][periph["num"]]["lock"] = False    
+                elif p.lower().startswith("spi"):
+                    if periph["num"] in range(2):
+                        self.i_peripherals["spi"][periph["num"]]["spi"] = SPI(periph["num"], baudrate=periph["freq"], sck=Pin(periph["sck"]), mosi=Pin(periph["mosi"]), miso=Pin(periph["mosi"]))
+                	self.i_peripherals["spi"][periph["num"]]["lock"] = False
+                elif p.lower().startswith("uart"):
+                    if periph["num"] in range(1,3):
+                        self.i_peripherals["uart"][periph["num"]]["uart"] = UART(periph["num"], baudrate=periph["baudrate"], tx=Pin(periph["tx"]), rx=Pin(periph["rx"]))
+                        self.i_peripherals["uart"][periph["num"]]["lock"] = False     
+            except Exception as E:
+                print("Can not build \"" + periph +  "\": " + str(E))
+        self.__print_internal_peripherals_tree()
+        print("Internal peripherals was initialized.\n")
 
 
     def __build_peripherals(self):
@@ -101,11 +129,11 @@ class mqttUnit:
                 mod = __import__("driver.drv_" + periph)
                 drv = getattr(mod, "drv_" + periph)
                 #print("==> " + str(periph) + ": " + str(peripherals_c[periph]))
-                self.peripherals[periph] = drv.build(self.mqtt_manager, self.base_topic, peripherals_c[periph])
+                self.peripherals[periph] = drv.build(self.mqtt_manager, self.base_topic, self.i_peripherals, peripherals_c[periph])
             except Exception as E:
                 print("Can not build \"" + periph +  "\": " + str(E))
         self.__print_peripherals_tree()
-        print("Peripherals was initialized.")
+        print("Peripherals was initialized.\n")
 
 
     def __print_peripherals_tree(self):
@@ -120,5 +148,27 @@ class mqttUnit:
                     if "params" in i:
                         print("        Parameters     : " + str(i["params"]))
                 except Exceptions as e:
-                    print("Something is wrong: " + str(e))
+                    print("Something is wrong in print peripherals tree: " + str(e))
+                    
+    def __print_internal_peripherals_tree(self):
+        print("Internal peripherals tree is:")
+        for perip, value in self.i_peripherals.items():
+            print(perip + ":" )
+            for i in value:
+                try:
+                    print("    " + str(i))
+                except Exceptions as e:
+                    print("Something is wrong in print internal peripherals tree: " + str(e))
 
+    def __system_cb(self, topic, mess):
+    	try:
+            messj = json.loads(mess)
+            if "webrepl" in messj:				#potentialy ahzardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
+            	self.enable_webrepl = bool(messj["webrepl"])
+            	if self.enable_webrepl:
+            		webrepl.start()
+            	else:
+            		webrepl.stop()
+           
+        except Exception as e:
+            print("System sub message error: " + str(e))	

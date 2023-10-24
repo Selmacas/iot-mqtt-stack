@@ -25,7 +25,7 @@ import time, json
 
 """
 
-def build(mqtt_manager, base_path, dict_in):
+def build(mqtt_manager, base_path, periphs_in, dict_in):
         dis = []
         for name, params in dict_in.items():
             try:
