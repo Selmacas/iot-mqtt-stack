@@ -12,7 +12,6 @@ def build(mqtt_manager, base_path, periphs_in, dict_in):
                 t = drvT(i2c, params["addr"], mqtt_manager, sub, pub)
                 p = {"name": name, "inst": t, "sub": sub, "pub": pub, "params": params}
                 dis.append(p)
-                print(p)
             except Exception as e:
                 print("Building temperature lm75a: " + name + " was wrong: " + str(e))
         return dis

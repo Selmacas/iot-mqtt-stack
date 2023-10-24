@@ -34,6 +34,14 @@
     },
     "peripherals":
     {
+        "temp_lm75a":	#This call driver driver/drv_temp_lm75a.py
+        {
+            "t1":		#Name of thermometer
+            {
+                "i2c": 0, #number of i2c which is used must be configured ins ection "internal peripherals"
+                "addr": 72 #i2c sddress of chip
+            }
+        },
         "do": #This call driver driver/drv_do.py
         {
             "ch1": #Name of channel, this could be anything, it will be part of mqtt topic path
