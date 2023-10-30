@@ -1,5 +1,6 @@
 {
     "unit_id": "<unique unit id>", #It is mandatory that this id is unique!!!
+	"debug: true, #Enable or disable potentialy hazardeous system commands (for example reset could be called form mqtt and webrepl could be activated from mqtt)
     "mqtt":
     {
         "broker_ip": "<broker_address>",

@@ -25,6 +25,7 @@ class mqttUnit:
         self.pub_topic_end = "system/response"
 
         self.is_running = False
+        self.debug = False
         
         self.timer = Timer(0)
         self.counter = 0
@@ -47,7 +48,11 @@ class mqttUnit:
             print("Somethig went wrong in start: " + str(e))
             return
         self.is_running = True
-        print("MqttUnit \"" + self.unit_id + "\" is now running!\n\n")
+        print("MqttUnit \"" + self.unit_id + "\" is now running!")
+        if self.debug:
+            print("DEBUG MODE\n\n")
+        else:
+            print("\n\n")
 
     def __build_config_tree(self):
         print("Loading config: \"" + self.config_file + "\" ...")
@@ -64,6 +69,8 @@ class mqttUnit:
             f.close()
             raise mqttUnitException
         f.close()
+        if "debug" in self.config_tree:
+            self.debug = bool(self.config_tree["debug"])
         print("Config \"" + self.config_file + "\" was loaded")
 
     def __connect_wifi(self):
@@ -173,24 +180,31 @@ class mqttUnit:
                     print("Something is wrong in print internal peripherals tree: " + str(e))
 
     def __system_cb(self, topic, mess):
-    	try:
+        try:
             messj = json.loads(mess)
-            if "webrepl" in messj:				#potentialy hazardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
-            	self.enable_webrepl = bool(messj["webrepl"])
-            	if self.enable_webrepl:
-            		webrepl.start()
-            	else:
-            		webrepl.stop()
-            if "reset" in messj:				#potentialy ahzardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
-            	if bool(messj["reset"]):
-            		machine.reset()
-            if "ip" in messj:			
-            	ip = self.wifi.ifconfig()
-            	msg = json.dumps({"ip": ip[0], "netmask": ip[1], "gateway": ip[2], "dns": ip[3] })
-            	self.mqtt_manager.publish(self.base_topic + self.pub_topic_end , msg)
+            #potentialy hazardeous command which are enabled only in debug mode (set from unitconf.json)
+            if self.debug == True: 
+                if "webrepl" in messj:              
+                    self.enable_webrepl = bool(messj["webrepl"])
+                    if self.enable_webrepl:
+                        webrepl.start()
+                        print("system: webrepl started")
+                    else:
+                        webrepl.stop()
+                        print("system: webrepl stopped")
+                if "reset" in messj:
+                    if bool(messj["reset"]):
+                        print("system: Reset from mqtt!!")
+                        machine.reset()
+                    
+            #safe system commands       
+            if "ip" in messj:           
+                ip = self.wifi.ifconfig()
+                msg = json.dumps({"ip": ip[0], "netmask": ip[1], "gateway": ip[2], "dns": ip[3] })
+                self.mqtt_manager.publish(self.base_topic + self.pub_topic_end , msg)
            
         except Exception as e:
-            print("System sub message error: " + str(e))	
+            print("System sub message error: " + str(e))    
             
     def timer_cb(self, a): # called every 10ms
         self.counter += 1
