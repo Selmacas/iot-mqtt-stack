@@ -1,7 +1,8 @@
 
 import network, gc, json
 import webrepl
-from machine import I2C, SPI, UART, Pin
+import machine
+from machine import I2C, SPI, UART, Pin, Timer
 from mqttmanager import mqttmanager
 from builtins import Exception
 
@@ -18,10 +19,16 @@ class mqttUnit:
         self.peripherals = {}
         self.i_peripherals = {"i2c": [{"i2c": None, "lock": False},{"i2c": None, "lock": False}], "spi": [{"spi": None, "lock": False},{"spi": None, "lock": False}], "uart": [{"uart": None, "lock": False},{"uart": None, "lock": False}, {"uart": None, "lock": False}]}
 
+        self.loop_tasks=[]
         self.unit_id = None
         self.base_topic = None
+        self.pub_topic_end = "system/response"
 
         self.is_running = False
+        
+        self.timer = Timer(0)
+        self.counter = 0
+        
 
     def start(self):
         if self.is_running == True:
@@ -36,7 +43,6 @@ class mqttUnit:
             self.__create_mqtt_manager()
             self.__build_internl_peripherals()
             self.__build_peripherals()
-            self.mqtt_manager.register_sub_cb(self.base_topic + "system", self.__system_cb)
         except Exception as e:
             print("Somethig went wrong in start: " + str(e))
             return
@@ -89,9 +95,15 @@ class mqttUnit:
             print("Can not read MQTT config: " + str(e))
             raise mqttUnitException
         try:
-            self.mqtt_manager = mqttmanager(self.unit_id, broker_ip, 200)
+            self.mqtt_manager = mqttmanager(self.unit_id, broker_ip)
+            self.timer.init(period=10, mode=Timer.PERIODIC, callback=self.timer_cb)
         except Exception as e:
             print("Can not create MQTT manager: " + str(e))
+            raise mqttUnitException
+        try:   
+            self.mqtt_manager.register_sub_cb(self.base_topic + "system/cmd", self.__system_cb)
+        except Exception as e:
+            print("Can not register system topic: " + str(e))
             raise mqttUnitException
         print("MQTT ip: " + broker_ip)
         print("MQTT base topic: " + self.base_topic)
@@ -105,7 +117,7 @@ class mqttUnit:
             try:
                 if p.lower().startswith("i2c"):
                     if periph["num"] in range(2):
-                        self.i_peripherals["i2c"][periph["num"]]["i2c"] = I2C(periph["num"], sda=Pin(periph["sda"]), scl=Pin(periph["scl"]), freq=periph["freq"])
+                        self.i_peripherals["i2c"][periph["num"]]["i2c"] = I2C(periph["num"], sda=Pin(periph["sda"]), scl=Pin(periph["scl"]), freq=periph["freq"], timeout=100)
                         self.i_peripherals["i2c"][periph["num"]]["lock"] = False    
                 elif p.lower().startswith("spi"):
                     if periph["num"] in range(2):
@@ -129,7 +141,7 @@ class mqttUnit:
                 mod = __import__("driver.drv_" + periph)
                 drv = getattr(mod, "drv_" + periph)
                 #print("==> " + str(periph) + ": " + str(peripherals_c[periph]))
-                self.peripherals[periph] = drv.build(self.mqtt_manager, self.base_topic, self.i_peripherals, peripherals_c[periph])
+                self.peripherals[periph] = drv.build(self.mqtt_manager, self.base_topic, self.i_peripherals, self.loop_tasks, peripherals_c[periph])
             except Exception as E:
                 print("Can not build \"" + periph +  "\": " + str(E))
         self.__print_peripherals_tree()
@@ -163,12 +175,31 @@ class mqttUnit:
     def __system_cb(self, topic, mess):
     	try:
             messj = json.loads(mess)
-            if "webrepl" in messj:				#potentialy ahzardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
+            if "webrepl" in messj:				#potentialy hazardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
             	self.enable_webrepl = bool(messj["webrepl"])
             	if self.enable_webrepl:
             		webrepl.start()
             	else:
             		webrepl.stop()
+            if "reset" in messj:				#potentialy ahzardeous, enabling webrepl => someone could do anything with board, insecure..... bud for local debuging it is OK
+            	if bool(messj["reset"]):
+            		machine.reset()
+            if "ip" in messj:			
+            	ip = self.wifi.ifconfig()
+            	msg = json.dumps({"ip": ip[0], "netmask": ip[1], "gateway": ip[2], "dns": ip[3] })
+            	self.mqtt_manager.publish(self.base_topic + self.pub_topic_end , msg)
            
         except Exception as e:
             print("System sub message error: " + str(e))	
+            
+    def timer_cb(self, a): # called every 10ms
+        self.counter += 1
+        if self.counter > 100000:
+            self.counter = 0
+
+        if (self.counter % 10) == 0: # call mqtt manager every 100ms
+            self.mqtt_manager.periodic_cb()
+        
+        for task in self.loop_tasks:
+            task()
+            

@@ -24,7 +24,7 @@ import time, json
    When value is changed or recieved message is not correct, driver publish in "<base_topic>/do/<channel name>/get_state" message in form "{ "state": <state>{int/bool}}".
 """
 
-def build(mqtt_manager, base_path, periphs_in, dict_in):
+def build(mqtt_manager, base_path, periphs_in, loop_task, dict_in):
         dos = []
         for name, params in dict_in.items():
             try:

@@ -25,7 +25,7 @@ import time, json
 
 """
 
-def build(mqtt_manager, base_path, periphs_in, dict_in):
+def build(mqtt_manager, base_path, periphs_in, loop_task, dict_in):
         dis = []
         for name, params in dict_in.items():
             try:
@@ -34,14 +34,15 @@ def build(mqtt_manager, base_path, periphs_in, dict_in):
                 settle_ms = 150
                 if "settle_ms" in params:
                     settle_ms = params["settle_ms"]
-                p = {"name": name, "inst": drvDI(params["pin_num"], mqtt_manager, sub, pub, settle_ms), "sub": sub, "pub": pub, "params": params}
+                drv = drvDI(params["pin_num"], mqtt_manager, sub, pub, loop_task, settle_ms)
+                p = {"name": name, "inst": drv, "sub": sub, "pub": pub, "params": params}
                 dis.append(p)
             except Exception as e:
                 print("Building di: " + name + " was wrong: " + str(e))
         return dis
 
 class drvDI:
-    def __init__(self, pin_num, mqtt_manager, sub_topic, pub_topic, settle_ms=150):
+    def __init__(self, pin_num, mqtt_manager, sub_topic, pub_topic, loop_task, settle_ms=150):
         self.mqtt = mqtt_manager
         self.sub_topic = sub_topic
         self.pub_topic = pub_topic
@@ -49,18 +50,26 @@ class drvDI:
         self.settle_ms = settle_ms
         self.old_time = time.ticks_ms()
         self.pin = Pin(pin_num, Pin.IN, pull=Pin.PULL_UP)
-        self.pin.irq(self.irq_cb, trigger=(Pin.IRQ_RISING or Pin.IRQ_FALLING))
+        self.old_value = self.pin.value()
+        
+        loop_task.append(self.loop)
+        
         self.pub_cb()
         self.scheduled_time=time.ticks_ms() + self.settle_ms
 
         self.mqtt.register_sub_cb(self.sub_topic, self.sub_cb)
         self.mqtt.register_pub_cb(self.pub_cb)
-
-    def irq_cb(self, a):
-        if time.ticks_diff(self.scheduled_time, time.ticks_ms()) < 0:
-            time.sleep_ms(self.settle_ms)
-            self.pub_cb()
+    
+    def loop(self):
+        if self.pin.value() == self.old_value:
             self.scheduled_time=time.ticks_ms() + self.settle_ms
+            return
+            
+        if time.ticks_diff(self.scheduled_time, time.ticks_ms()) < 0:
+            self.old_value = self.pin.value()
+            self.pub_cb()
+            
+        
 
     def sub_cb(self, topic, mess):
         self.pub_cb()

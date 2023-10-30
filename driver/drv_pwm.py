@@ -27,7 +27,7 @@ import math, time, json
    When value is changed or recieved message is not correct, driver publish in "<base_topic>/pwm/<channel name>/get_state" message in form "{ "duty": <duty>{int}}".
 """
 
-def build(mqtt_manager, base_path, periphs_in, dict_in):
+def build(mqtt_manager, base_path, periphs_in, loop_task, dict_in):
         pwms = []
         for name, params in dict_in.items():
             try:
