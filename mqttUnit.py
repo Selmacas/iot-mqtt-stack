@@ -212,7 +212,11 @@ class mqttUnit:
             self.counter = 0
 
         if (self.counter % 10) == 0: # call mqtt manager every 100ms
+            if self.wifi.isconnected() == False:
+                machine.reset()
             self.mqtt_manager.periodic_cb()
+            
+
         
         for task in self.loop_tasks:
             task()

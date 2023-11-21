@@ -68,7 +68,6 @@ class drvDI:
         if time.ticks_diff(self.scheduled_time, time.ticks_ms()) < 0:
             self.old_value = self.pin.value()
             self.pub_cb()
-            
         
 
     def sub_cb(self, topic, mess):
