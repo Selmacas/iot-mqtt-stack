@@ -72,7 +72,7 @@ class dPWM:
         try:
             messj = json.loads(mess)
             duty = int(messj["duty"])
-            if duty <= 100:
+            if duty <= 100 && duty >= 0:
                 duty_i = int((duty*1023/100, 2**(duty/self.r)-1)[self.natural])
                 self.pwm.duty(duty_i)
                 time.sleep_ms(1)

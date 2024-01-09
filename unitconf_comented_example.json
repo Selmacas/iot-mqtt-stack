@@ -73,7 +73,19 @@
                 "duty": 0,
                 "pin_num": 2
             }
-        }
+        },
+        "rgbw_pwm": #Name of channel, this could be anything, it will be part of mqtt topic path
+		{
+			"ch1":
+			{
+				"R": 16,        #these parameters are according to driver diver/drv_rgbw_pwm.py
+				"G": 15,
+				"B": 17,
+				"W": 21,
+				"freq": 1000 
+			}
+
+		}
     }
 
 }
