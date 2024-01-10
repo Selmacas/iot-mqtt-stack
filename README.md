@@ -49,3 +49,8 @@ So the early mentioned config file defines one digital outpud ("do") channel nam
 
 # How to write driver
 
+# TODO:
+- Write doc how to write driver
+- Write doc about sys functions
+- Write driver for LCD
+- Write documentation in driver for lm75
